@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <math.h>
+#include <time.h>
 
 #include "include/mnist_file.h"
 #include "include/neural_network.h"
@@ -16,6 +17,7 @@ const char * train_images_file = "data/train-images-idx3-ubyte";
 const char * train_labels_file = "data/train-labels-idx1-ubyte";
 const char * test_images_file = "data/t10k-images-idx3-ubyte";
 const char * test_labels_file = "data/t10k-labels-idx1-ubyte";
+
 
 /**
  * Calculate the accuracy of the predictions of a neural network on a dataset.
@@ -55,6 +57,10 @@ int main(int argc, char *argv[])
     neural_network_t network;
     float loss, accuracy;
     int i, batches;
+    double total_time;
+    clock_t start, end;
+
+    start = clock();
 
     // Read the datasets from the files
     train_dataset = mnist_get_dataset(train_images_file, train_labels_file);
@@ -83,5 +89,8 @@ int main(int argc, char *argv[])
     mnist_free_dataset(train_dataset);
     mnist_free_dataset(test_dataset);
 
+    end = clock();
+    total_time = ((double) (end - start)) / CLOCKS_PER_SEC;
+    printf("%lf seconds to run", total_time);
     return 0;
 }
