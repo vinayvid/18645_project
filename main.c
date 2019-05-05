@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
+#include <omp.h>
 
 #define FILE_TRAIN_IMAGE		"train-images-idx3-ubyte"
 #define FILE_TRAIN_LABEL		"train-labels-idx1-ubyte"
@@ -95,16 +96,18 @@ void foo()
 	LeNet5 *lenet = (LeNet5 *)malloc(sizeof(LeNet5));
 	if (load(lenet, LENET_FILE))
 		Initial(lenet);
-	clock_t start = clock();
+	double start = omp_get_wtime();
 	int batches[] = { 300 };
 	for (int i = 0; i < sizeof(batches) / sizeof(*batches);++i)
 		training(lenet, train_data, train_label, batches[i],COUNT_TRAIN);
 	int right = testing(lenet, test_data, test_label, COUNT_TEST);
-    clock_t end = clock();
+    double end = omp_get_wtime();
 	printf("%d/%d\n", right, COUNT_TEST);
 	printf("Accuracy: %lf\n", (double) right/COUNT_TEST);
-    double time =((double) (end - start))/CLOCKS_PER_SEC;
+    double time = (end - start);
 	printf("Time:%lf\n", time);
+	printf("start:%d\n", (int)start);
+	printf("end:%d\n", (int)end);
 	//save(lenet, LENET_FILE);
 	free(lenet);
 	free(train_data);

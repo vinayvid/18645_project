@@ -1,5 +1,5 @@
 all:
-	gcc -Wall -std=c99 lenet.c main.c -lm -o lenet
+	gcc -Wall -std=c99 -fopenmp lenet.c main.c -lm -o lenet
 	#nvcc -g -pg -I. --ptxas-options=-v -arch=sm_61 -o cuda_mnist.o -c mnist.cu
 	#nvcc -g -pg -I. --ptxas-options=-v -arch=sm_61 -o cuda_mnist_file.o -c mnist_file.cu
 	#nvcc -g -pg -I. --ptxas-options=-v -arch=sm_61 -o cuda_nn.o -c neural_network.cu
