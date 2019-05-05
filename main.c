@@ -100,8 +100,11 @@ void foo()
 	for (int i = 0; i < sizeof(batches) / sizeof(*batches);++i)
 		training(lenet, train_data, train_label, batches[i],COUNT_TRAIN);
 	int right = testing(lenet, test_data, test_label, COUNT_TEST);
+    clock_t end = clock();
 	printf("%d/%d\n", right, COUNT_TEST);
-	printf("Time:%u\n", (unsigned)(clock() - start));
+	printf("Accuracy: %lf\n", (double) right/COUNT_TEST);
+    double time =((double) (end - start))/CLOCKS_PER_SEC;
+	printf("Time:%lf\n", time);
 	//save(lenet, LENET_FILE);
 	free(lenet);
 	free(train_data);
