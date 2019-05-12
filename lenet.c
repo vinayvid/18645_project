@@ -3,6 +3,8 @@
 #include <time.h>
 #include <stdlib.h>
 #include <math.h>
+#include <stdio.h>
+
 
 #define GETLENGTH(array) (sizeof(array)/sizeof(*(array)))
 
@@ -10,14 +12,70 @@
 
 #define FOREACH(i,count) for (int i = 0; i < count; ++i)
 
-#define CONVOLUTE_VALID(input,output,weight)											\
-{																						\
-	FOREACH(o0,GETLENGTH(output))														\
-		FOREACH(o1,GETLENGTH(*(output)))												\
-			FOREACH(w0,GETLENGTH(weight))												\
-				FOREACH(w1,GETLENGTH(*(weight)))										\
-					(output)[o0][o1] += (input)[o0 + w0][o1 + w1] * (weight)[w0][w1];	\
+
+#define CONVOLUTE_VALID(input,output,weight){\
+	   double sum = 0;\
+           for (int o0 = 0; o0 < GETLENGTH(output); ++o0) {    				 	 \
+                for(int o1 = 0; o1 < GETLENGTH(*output); ++o1)	{					\
+                       for(int w0 = 0; w0 < GETLENGTH(weight); ++w0)	{			\
+				sum = output[o0][o1];\
+				for(int w1 = 0 ; w1 < GETLENGTH(*weight); ++w1)  {			     \
+					sum += input[o0 + w0][o1 + w1] * weight[w0][w1];     \
+				} \
+				output[o0][o1] = sum;\
+			} \
+		} \
+	} \ 
 }
+
+/*
+
+#define CONVOLUTE_VALID(input,output,weight)\
+{\
+	FOREACH(o0,GETLENGTH(output))\
+		FOREACH(o1,GETLENGTH(*(output)))\
+			FOREACH(w0,GETLENGTH(weight))\
+				FOREACH(w1,GETLENGTH(*(weight)))\
+					(output)[o0][o1] += (input)[o0 + w0][o1 + w1] * (weight)[w0][w1];\
+}
+
+*/
+/*
+static void CONVOLUTE_VALID(double *input , double *output, double **weight){
+
+
+
+	printf("The size of input is :%d.\n",GETLENGTH(input));
+	int outputLength = GETLENGTH(output);
+	int outputHeight = GETLENGTH(output);
+	int weightSize = GETLENGTH(weight);
+	int weightSize1 = GETLENGTH(*weight);
+
+	printf("outputLength:%d\n",outputLength);
+	printf("outputHeight:%d\n",outputHeight);
+	printf("weightSize:%d\n",weightSize);
+	printf("weightSize1:%d\n",weightSize1);
+
+
+
+   	
+	for(int o0 = 0; o0 < GETLENGTH(output); ++o0){
+
+		for(int o1 = 0; o1 < GETLENGTH(*output); ++o1){
+
+				for(int w0 = 0; w0 < GETLENGTH(weight); ++w0){
+
+					for(int w1 = 0 ; w1 < GETLENGTH(*weight); ++w1){
+
+						*output[o0][o1] += *input[o0+w0][o1+w1] * (**weight)[w0][w1];
+					}
+
+			}
+
+		}
+	} 
+	
+}*/
 
 #define CONVOLUTE_FULL(input,output,weight)												\
 {																						\
@@ -29,9 +87,9 @@
 }
 
 #define CONVOLUTION_FORWARD(input,output,weight,bias,action)					\
-{																				\
-	for (int x = 0; x < GETLENGTH(weight); ++x)									\
-		for (int y = 0; y < GETLENGTH(*weight); ++y)							\
+{	_Pragma("omp parallel for collapse(2)")																			\
+	for (int x = 0; x < (int)GETLENGTH(weight); ++x)									\
+		for (int y = 0; y < (int)GETLENGTH(*weight); ++y)							\
 			CONVOLUTE_VALID(input[x], output[y], weight[x][y]);					\
 	FOREACH(j, GETLENGTH(output))												\
 		FOREACH(i, GETCOUNT(output[j]))											\
