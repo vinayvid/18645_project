@@ -18,9 +18,11 @@
            for (int o0 = 0; o0 < GETLENGTH(output); ++o0) {    				 	 \
                 for(int o1 = 0; o1 < GETLENGTH(*output); ++o1)	{					\
                        for(int w0 = 0; w0 < GETLENGTH(weight); ++w0)	{			\
-				sum = output[o0][o1];\
+			 	sum = output[o0][o1];\
+			        double *inp = input[o0 + w0];	\
+				double *weight_mat = weight[w0]; \
 				for(int w1 = 0 ; w1 < GETLENGTH(*weight); ++w1)  {			     \
-					sum += input[o0 + w0][o1 + w1] * weight[w0][w1];     \
+					sum += inp[o1 + w1] * weight_mat[w1];     \
 				} \
 				output[o0][o1] = sum;\
 			} \
