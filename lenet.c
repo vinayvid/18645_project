@@ -79,7 +79,7 @@ static void CONVOLUTE_VALID(double *input , double *output, double **weight){
 	} 
 	
 }*/
-
+/*
 #define CONVOLUTE_FULL(input,output,weight)												\
 {																						\
 	FOREACH(i0,GETLENGTH(input))														\
@@ -87,6 +87,25 @@ static void CONVOLUTE_VALID(double *input , double *output, double **weight){
 			FOREACH(w0,GETLENGTH(weight))												\
 				FOREACH(w1,GETLENGTH(*(weight)))										\
 					(output)[i0 + w0][i1 + w1] += (input)[i0][i1] * (weight)[w0][w1];	\
+}
+*/
+
+#define CONVOLUTE_FULL(input,output,weight)\
+{\
+ 	for(int i0 = 0; i0 < (int) GETLENGTH(input); ++i0)	\
+	{							   \
+		double *input_i0 = input[i0]; 			     \
+		for(int i1 = 0; i1 < (int) GETLENGTH(*(input)); ++i1){	\
+			double input_i1 = input_i0[i1];                  \
+			for(int w0  = 0 ; w0 < GETLENGTH(weight); ++w0)	{	\
+				double *output_back0 = output[i0+w0]; 			\
+				double *weight_w0 = weight[w0]; 			   \
+				for(int w1 = 0; w1 < GETLENGTH(*(weight)); ++w1){		\
+					output_back0[i1+w1] += input_i1 * weight_w0[w1];           \
+				}\
+			}\
+		}\
+	 }\
 }
 
 #define CONVOLUTION_FORWARD(input,output,weight,bias,action)					\
@@ -99,8 +118,8 @@ static void CONVOLUTE_VALID(double *input , double *output, double **weight){
 		((double *)output[j])[i] = action(((double *)output[j])[i] + bias[j]);	\
 }
 
-#define CONVOLUTION_BACKWARD(input,inerror,outerror,weight,wd,bd,actiongrad)\
-{																			\
+#define CONVOLUTION_BACKWARD(input,inerror,outerror,weight,wd,bd,actiongrad) \
+{\
 	for (int x = 0; x < GETLENGTH(weight); ++x)								\
 		for (int y = 0; y < GETLENGTH(*weight); ++y)						\
 			CONVOLUTE_FULL(outerror[y], inerror[x], weight[x][y]);			\
