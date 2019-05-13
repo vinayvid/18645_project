@@ -1,5 +1,5 @@
 The original Lenet-5 source code for this project was adapted from fan-wenjie's LeNet-5 GitHub project. 
-https://github.com/fan-wenjie/LeNet-5/tree/master/LeNet-5
+https://github.com/fan-wenjie/LeNet-5/
 
 The original PyTorch implementation was adapted from
 
