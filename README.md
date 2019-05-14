@@ -1,7 +1,8 @@
 The original Lenet-5 source code for this project was adapted from fan-wenjie's LeNet-5 GitHub project. 
 https://github.com/fan-wenjie/LeNet-5/
 
-The original PyTorch implementation was adapted from
+The original PyTorch implementation was adapted from Bolla Karthikeya's GitHub project.
+https://github.com/bollakarthikeya/LeNet-5-PyTorch
 
 
 # Lenet-5 in C vs PyTorch
