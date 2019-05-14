@@ -3,15 +3,12 @@
 #include <time.h>
 #include <stdlib.h>
 #include <math.h>
-#include <stdio.h>
-
 
 #define GETLENGTH(array) (sizeof(array)/sizeof(*(array)))
 
 #define GETCOUNT(array)  (sizeof(array)/sizeof(double))
 
 #define FOREACH(i,count) for (int i = 0; i < count; ++i)
-
 
 #define CONVOLUTE_VALID(input,output,weight){\
 	   double sum = 0;\
@@ -28,67 +25,8 @@
 				     output_o0[o1] = sum;\
 			     } \
 		    } \
-	   } \ 
-}
-
-/*
-
-#define CONVOLUTE_VALID(input,output,weight)\
-{\
-	FOREACH(o0,GETLENGTH(output))\
-		FOREACH(o1,GETLENGTH(*(output)))\
-			FOREACH(w0,GETLENGTH(weight))\
-				FOREACH(w1,GETLENGTH(*(weight)))\
-					(output)[o0][o1] += (input)[o0 + w0][o1 + w1] * (weight)[w0][w1];\
-}
-
-*/
-/*
-static void CONVOLUTE_VALID(double *input , double *output, double **weight){
-
-
-
-	printf("The size of input is :%d.\n",GETLENGTH(input));
-	int outputLength = GETLENGTH(output);
-	int outputHeight = GETLENGTH(output);
-	int weightSize = GETLENGTH(weight);
-	int weightSize1 = GETLENGTH(*weight);
-
-	printf("outputLength:%d\n",outputLength);
-	printf("outputHeight:%d\n",outputHeight);
-	printf("weightSize:%d\n",weightSize);
-	printf("weightSize1:%d\n",weightSize1);
-
-
-
-   	
-	for(int o0 = 0; o0 < GETLENGTH(output); ++o0){
-
-		for(int o1 = 0; o1 < GETLENGTH(*output); ++o1){
-
-				for(int w0 = 0; w0 < GETLENGTH(weight); ++w0){
-
-					for(int w1 = 0 ; w1 < GETLENGTH(*weight); ++w1){
-
-						*output[o0][o1] += *input[o0+w0][o1+w1] * (**weight)[w0][w1];
-					}
-
-			}
-
-		}
-	} 
-	
-}*/
-/*
-#define CONVOLUTE_FULL(input,output,weight)												\
-{																						\
-	FOREACH(i0,GETLENGTH(input))														\
-		FOREACH(i1,GETLENGTH(*(input)))													\
-			FOREACH(w0,GETLENGTH(weight))												\
-				FOREACH(w1,GETLENGTH(*(weight)))										\
-					(output)[i0 + w0][i1 + w1] += (input)[i0][i1] * (weight)[w0][w1];	\
-}
-*/
+	   } \
+}	
 
 #define CONVOLUTE_FULL(input,output,weight)\
 {\
@@ -109,42 +47,33 @@ static void CONVOLUTE_VALID(double *input , double *output, double **weight){
 }
 
 #define CONVOLUTION_FORWARD(input,output,weight,bias,action)					\
-{	_Pragma("omp parallel for collapse(2)")																			\
+{																				\
+	_Pragma("omp parallel for collapse(2)")									\
 	for (int x = 0; x < (int)GETLENGTH(weight); ++x)									\
-		for (int y = 0; y < (int)GETLENGTH(*weight); ++y)							\
+		for (int y = 0; y < (int) GETLENGTH(*weight); ++y)							\
 			CONVOLUTE_VALID(input[x], output[y], weight[x][y]);					\
 	FOREACH(j, GETLENGTH(output))												\
 		FOREACH(i, GETCOUNT(output[j]))											\
 		((double *)output[j])[i] = action(((double *)output[j])[i] + bias[j]);	\
 }
 
-#define CONVOLUTION_BACKWARD(input,inerror,outerror,weight,wd,bd,actiongrad) \
-{\
-	for (int x = 0; x < GETLENGTH(weight); ++x)								\
-		for (int y = 0; y < GETLENGTH(*weight); ++y)						\
+#define CONVOLUTION_BACKWARD(input,inerror,outerror,weight,wd,bd,actiongrad)\
+{																			\
+	_Pragma("omp parallel for collapse(2)")						\
+	for (int x = 0; x < (int) GETLENGTH(weight); ++x)								\
+		for (int y = 0; y < (int) GETLENGTH(*weight); ++y)						\
 			CONVOLUTE_FULL(outerror[y], inerror[x], weight[x][y]);			\
-	\
-	/*FOREACH(i, GETCOUNT(inerror))											\
+	FOREACH(i, GETCOUNT(inerror))											\
 		((double *)inerror)[i] *= actiongrad(((double *)input)[i]);			\
 	FOREACH(j, GETLENGTH(outerror))											\
 		FOREACH(i, GETCOUNT(outerror[j]))									\
-		bd[j] += ((double *)outerror[j])[i];*/							\
-	FOREACH(i, GETCOUNT(inerror))                                                                                   \
-                ((double *)inerror)[i] *= actiongrad(((double *)input)[i]);                     \
-        FOREACH(j, GETLENGTH(outerror)){                                                                                        \
-                double sum = bd[j];                                                                     \
-                double *out_error  =  ((double *)outerror[j]);							\
-		for(int i = 0; i < (int) GETCOUNT(outerror[j]); i=i+2){                                                                 \
-                   sum += out_error[i] +   out_error[i+1];                                                  \
-                }                                                                                               \
-                bd[j] = sum;                                                                                            \
-        }                \
-	for (int x = 0; x < GETLENGTH(weight); ++x)								\
-		for (int y = 0; y < GETLENGTH(*weight); ++y)						\
+		bd[j] += ((double *)outerror[j])[i];								\
+	for (int x = 0; x < (int) GETLENGTH(weight); ++x)								\
+		for (int y = 0; y < (int) GETLENGTH(*weight); ++y)						\
 			CONVOLUTE_VALID(input[x], wd[x][y], outerror[y]);				\
 }
 
-/*
+
 #define SUBSAMP_MAX_FORWARD(input,output)														\
 {																								\
 	const int len0 = GETLENGTH(*(input)) / GETLENGTH(*(output));								\
@@ -164,55 +93,6 @@ static void CONVOLUTE_VALID(double *input , double *output, double **weight){
 		output[i][o0][o1] = input[i][o0*len0 + x0][o1*len1 + x1];								\
 	}																							\
 }
-
-*/
-#define SUBSAMP_MAX_FORWARD(input,output)                                                                                                               \
-{                                                                                                                                                                                               \
-        const int len0 = GETLENGTH(*(input)) / GETLENGTH(*(output));                                                            \
-        const int len1 = GETLENGTH(**(input)) / GETLENGTH(**(output));                                                          \
-        for( int i = 0; i < GETLENGTH(output); i++){                                                                                                                            \
-                FOREACH(o0, GETLENGTH(*(output)))                                                                                                                       \
-                FOREACH(o1, GETLENGTH(**(output)))                                                                                                                      \
-                {                                                                                                                                                                                       \
-                    int x0 = 0, x1 = 0, ismax,ismax1;                                                                                                                   \
-                    for (int l0 = 0; l0 < (int) len0; ++l0 ){                                                                                                                                           \
-                        for(int l1 = 0; l1 < (int) len1; l1+=2)                                                                                                                         \
-                        {                                                                                                                                                                               \
-                          ismax = input[i][o0*len0 + l0][o1*len1 + l1] > input[i][o0*len0 + x0][o1*len1 + x1];\
-                          ismax1 = input[i][o0*len0 + l0][o1*len1 + l1+1] > input[i][o0*len0 + x0][o1*len1 + x1];                               \
-                          x0 += ismax * (l0 - x0);                                                                                                                      \
-                          x1 += ismax * (l1 - x1);                                                                                                      \
-                          x0 += ismax1 * (l0-x0);                                                                                                                       \
-                          x1 += ismax1 * (l1+1 -x1);                                                                                            \
-                        }                                                                                                                                                                               \
-                        output[i][o0][o1] = input[i][o0*len0 + x0][o1*len1 + x1];                                                               \
-                    }                                                                   \
-                }                                                                               \
-        }                                                                                                                       \
-}
-
-/*
-#define SUBSAMP_MAX_BACKWARD(input,inerror,outerror)											\
-{																								\
-	const int len0 = GETLENGTH(*(inerror)) / GETLENGTH(*(outerror));							\
-	const int len1 = GETLENGTH(**(inerror)) / GETLENGTH(**(outerror));							\
-	FOREACH(i, GETLENGTH(outerror))																\
-	FOREACH(o0, GETLENGTH(*(outerror)))															\
-	FOREACH(o1, GETLENGTH(**(outerror)))														\
-	{																							\
-		int x0 = 0, x1 = 0, ismax;																\
-		FOREACH(l0, len0)																		\
-			FOREACH(l1, len1)																	\
-		{																						\
-			ismax = input[i][o0*len0 + l0][o1*len1 + l1] > input[i][o0*len0 + x0][o1*len1 + x1];\
-			x0 += ismax * (l0 - x0);															\
-			x1 += ismax * (l1 - x1);															\
-		}																						\
-		inerror[i][o0*len0 + x0][o1*len1 + x1] = outerror[i][o0][o1];							\
-	}																							\
-} */
-
-
 
 #define SUBSAMP_MAX_BACKWARD(input,inerror,outerror)                                                                                    \
 {                                                                                                                                                                                               \
@@ -251,12 +131,18 @@ static void CONVOLUTE_VALID(double *input , double *output, double **weight){
 		((double *)output)[j] = action(((double *)output)[j] + bias[j]);	\
 }
 
+
 #define DOT_PRODUCT_BACKWARD(input,inerror,outerror,weight,wd,bd,actiongrad)	\
-{																				\
-	for (int x = 0; x < GETLENGTH(weight); ++x)									\
-		for (int y = 0; y < GETLENGTH(*weight); ++y)							\
-			((double *)inerror)[x] += ((double *)outerror)[y] * weight[x][y];	\
-	FOREACH(i, GETCOUNT(inerror))												\
+{													\
+	for (int x = 0; x < GETLENGTH(weight); ++x){						\
+		double sum = ((double *)inerror)[x];									\
+		double *weight_mat = weight[x];					\
+		for (int y = 0; y < GETLENGTH(*weight); ++y){							\
+			sum += ((double *)outerror)[y] * weight_mat[y];				\
+		}												\
+		((double *) inerror)[x] = sum;					\
+	}											\
+	FOREACH(i, GETCOUNT(inerror))							\
 		((double *)inerror)[i] *= actiongrad(((double *)input)[i]);				\
 	FOREACH(j, GETLENGTH(outerror))												\
 		bd[j] += ((double *)outerror)[j];										\
@@ -266,10 +152,8 @@ static void CONVOLUTE_VALID(double *input , double *output, double **weight){
 		for (int y = 0; y < GETLENGTH(*weight); ++y){								\
 			weight_error[y] += input_mat * ((double *)outerror)[y];			\
 		}												\
-	}												\		
-}
-
-
+	}												\
+}													
 
 double relu(double x)
 {
@@ -437,6 +321,3 @@ void Initial(LeNet5 *lenet)
 	for (double *pos = (double *)lenet->weight5_6; pos < (double *)lenet->bias0_1; *pos++ *= sqrt(6.0 / (LAYER5 + OUTPUT)));
 	for (int *pos = (int *)lenet->bias0_1; pos < (int *)(lenet + 1); *pos++ = 0);
 }
-
-
-
